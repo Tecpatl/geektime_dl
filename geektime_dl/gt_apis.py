@@ -68,11 +68,11 @@ class GkApiClient(metaclass=Singleton):
         self.reset_session()
 
     def _post(self, url: str, data: dict = None, **kwargs) -> requests.Response:
-        with contextlib.suppress(Exception):
-            for k in ['cellphone', 'password']:
-                if data and k in data:
-                    data[k] = 'xxx'
-            logger.info("request geektime api, {}, {}".format(url, data))
+        # with contextlib.suppress(Exception):
+        #     for k in ['cellphone', 'password']:
+        #         if data and k in data:
+        #             data[k] = 'xxx'
+        #     logger.info("request geektime api, {}, {}".format(url, data))
 
         headers = kwargs.setdefault('headers', {})
         headers.update({

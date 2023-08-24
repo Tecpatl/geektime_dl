@@ -7,7 +7,7 @@ import json
 import datetime
 
 from termcolor import colored
-from ebook import make_ebook
+# from ebook import make_ebook
 from ebook.ebooklib import format_file_name
 from tqdm import tqdm
 
@@ -55,11 +55,11 @@ class EBook(Command):
                 '简介', course_intro['column_intro'], **kwargs)
             sys.stdout.write('下载{}简介 done\n'.format(column_title))
         # cover
-        if not no_cache and os.path.isfile(os.path.join(_out_dir, 'cover.jpg')):
-            sys.stdout.write('{}封面 exists\n'.format(column_title))
-        else:
-            render.generate_cover_img(course_intro['column_cover'])
-            sys.stdout.write('下载{}封面 done\n'.format(column_title))
+        # if not no_cache and os.path.isfile(os.path.join(_out_dir, 'cover.jpg')):
+        #     sys.stdout.write('{}封面 exists\n'.format(column_title))
+        # else:
+            # render.generate_cover_img(course_intro['column_cover'])
+            # sys.stdout.write('下载{}封面 done\n'.format(column_title))
         # toc
         ebook_name = self._format_title(course_intro)
         render.render_toc_md(
@@ -145,20 +145,20 @@ class EBook(Command):
         )
 
         # ebook 未完结或者 no_cache 都会重新制作电子书
-        ebook_name = '{}.{}'.format(
-            self._format_title(course_intro), cfg['format'])
-        fp = pathlib.Path(output_folder) / ebook_name
-        if (not no_cache and self.is_course_finished(course_intro)
-                and fp.exists()):
-            print(colored("{} exists\n".format(ebook_name), 'green'))
-        else:
-            make_ebook(
-                source_dir=str(source_folder),
-                output_dir=output_folder,
-                format=cfg['format']
-            )
-            print(colored('制作电子书完成:{}-{}'.format(
-                course_id, course_intro['column_title']), 'green'))
+        # ebook_name = '{}.{}'.format(
+        #     self._format_title(course_intro), cfg['format'])
+        # fp = pathlib.Path(output_folder) / ebook_name
+        # if (not no_cache and self.is_course_finished(course_intro)
+        #         and fp.exists()):
+        #     print(colored("{} exists\n".format(ebook_name), 'green'))
+        # else:
+        #     make_ebook(
+        #         source_dir=str(source_folder),
+        #         output_dir=output_folder,
+        #         format=cfg['format']
+        #     )
+        print(colored('制作电子书完成:{}-{}'.format(
+            course_id, course_intro['column_title']), 'green'))
 
     @staticmethod
     def _make_output_folder(output_folder: str):

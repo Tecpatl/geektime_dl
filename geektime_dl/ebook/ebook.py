@@ -7,6 +7,7 @@ import contextlib
 import pathlib
 from urllib.parse import urlparse
 import io
+import pypandoc
 
 import requests
 from jinja2 import Environment, FileSystemLoader
@@ -25,11 +26,13 @@ class Render:
     def _render_file(
             self, template_name: str, context: dict, filename: str) -> None:
         """
-        生成 html 文件
+        # 生成 markdown 文件
         """
         template = self._jinja_env.get_template(template_name)
         with open(os.path.join(self._output_folder, filename), "w") as f:
-            f.write(template.render(**context))
+            raw_html = template.render(**context)
+            output = pypandoc.convert_text(raw_html,'md', format='html', extra_args=['--to=gfm-raw_html'])
+            f.write(output)
 
     def render_toc_md(self, title: str, headers: list) -> None:
         """
@@ -41,24 +44,25 @@ class Render:
 
     def render_article_html(self, title: str, content: str, **kwargs) -> None:
         """
-        生成 html 文件
+        # 生成 markdown 文件
         """
         content = self._parse_image(content, **kwargs)
         self._render_file(
             'article.html',
             {'title': title, 'content': content},
-            '{}.html'.format(title)
+            '{}.md'.format(title)
+            # '{}.html'.format(title)
         )
 
-    def generate_cover_img(self, url: str) -> None:
-        """
-        下载 url 作为封面
-        """
-        with contextlib.suppress(Exception):
-            r = requests.get(url, timeout=20)
-            cover = os.path.join(self._output_folder, 'cover.jpg')
-            with open(cover, 'wb') as f:
-                f.write(r.content)
+    # def generate_cover_img(self, url: str) -> None:
+    #     """
+    #     下载 url 作为封面
+    #     """
+    #     with contextlib.suppress(Exception):
+    #         r = requests.get(url, timeout=20)
+    #         cover = os.path.join(self._output_folder, 'cover.jpg')
+    #         with open(cover, 'wb') as f:
+    #             f.write(r.content)
 
     def _parse_image(self, content: str, **kwargs) -> str:
         """
@@ -75,45 +79,45 @@ class Render:
         for empty_img in empty_imgs:
             content = content.replace(empty_img, '')
 
-        p = r'img\s+src="(.*?)"'
-        img_url_list = re.findall(p, content)
+        # p = r'img\s+src="(.*?)"'
+        # img_url_list = re.findall(p, content)
 
-        for url in img_url_list:
-            with contextlib.suppress(Exception):
-                url_local = self._format_url_path(url)
-                r = requests.get(url, timeout=20)
-                img_fn = os.path.join(self._output_folder, url_local)
-                self._save_img(
-                    r.content, img_fn,
-                    min_width=kwargs.get('image_min_width'),
-                    min_height=kwargs.get('image_min_height'),
-                    ratio=kwargs.get('image_ratio')
-                )
-                content = content.replace(url, url_local)
+        # for url in img_url_list:
+        #     with contextlib.suppress(Exception):
+        #         url_local = self._format_url_path(url)
+        #         r = requests.get(url, timeout=20)
+        #         img_fn = os.path.join(self._output_folder, url_local)
+        #         # self._save_img(
+        #         #     r.content, img_fn,
+        #         #     min_width=kwargs.get('image_min_width'),
+        #         #     min_height=kwargs.get('image_min_height'),
+        #         #     ratio=kwargs.get('image_ratio')
+        #         # )
+        #         content = content.replace(url, url_local)
 
         return content
 
-    @staticmethod
-    def _save_img(content: bytes, filename: str,
-                  min_width: int = None, min_height: int = None,
-                  ratio: float = None) -> None:
-        min_width = min_width or 500
-        min_height = min_height or 500
-        ratio = ratio or 0.5
+    # @staticmethod
+    # def _save_img(content: bytes, filename: str,
+    #               min_width: int = None, min_height: int = None,
+    #               ratio: float = None) -> None:
+    #     min_width = min_width or 500
+    #     min_height = min_height or 500
+    #     ratio = ratio or 0.5
 
-        img = Image.open(io.BytesIO(content))
-        w, h = img.size
-        if w <= min_width or h <= min_height:
-            img.save(filename, img.format)
-            return
+    #     img = Image.open(io.BytesIO(content))
+    #     w, h = img.size
+    #     if w <= min_width or h <= min_height:
+    #         img.save(filename, img.format)
+    #         return
 
-        rw, rh = int(w * ratio), int(h * ratio)
-        if rw < min_width:
-            rw, rh = min_width, int(rh * min_width / rw)
-        if rh < min_height:
-            rw, rh = int(rw * min_height / rh), min_height
-        img.thumbnail((rw, rh))
-        img.save(filename, img.format)
+    #     rw, rh = int(w * ratio), int(h * ratio)
+    #     if rw < min_width:
+    #         rw, rh = min_width, int(rh * min_width / rw)
+    #     if rh < min_height:
+    #         rw, rh = int(rw * min_height / rh), min_height
+    #     img.thumbnail((rw, rh))
+    #     img.save(filename, img.format)
 
     @staticmethod
     def _format_url_path(url: str) -> str:
